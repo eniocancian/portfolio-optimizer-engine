@@ -18,23 +18,24 @@ Em problemas reais de alocação de capital (especialmente em mercados de Renda 
 
 Para garantir otimização global e estabilidade, este motor implementa uma esteira sequencial:
 
-Universo de Ativos & Limites ]
-│
-▼
-┌───────────────────────────┐
-│ Estágio 1: LP (HiGHS)     │ ──> Maximiza retorno sujeito a orçamento,
-│                           │     piso de classe e tetos individuais.
-└───────────────────────────┘     Extrai Preços-Sombra (Variáveis Duais).
-│
-│ Retorno Ótimo (R*)
-▼
-┌───────────────────────────┐
-│ Estágio 2: QP (trust-c.)  │ ──> Minimiza wᵀΣw (variância da carteira)
-│                           │     travando o retorno em rᵀw ≥ R* - ε.
-└───────────────────────────┘
-│
-▼
-[ Alocação Ótima Estável (Menor Risco para o Máximo Retorno) ]
+```text
+[ Universo de Ativos & Limites ]
+                │
+                ▼
+   ┌───────────────────────────┐
+   │ Estágio 1: LP (HiGHS)     │ ──> Maximiza retorno sujeito a orçamento,
+   │                           │     piso de classe e tetos individuais.
+   └───────────────────────────┘     Extrai Preços-Sombra (Variáveis Duais).
+                │
+                │ Retorno Ótimo (R*)
+                ▼
+   ┌───────────────────────────┐
+   │ Estágio 2: QP (trust-c.)  │ ──> Minimiza wᵀΣw (variância da carteira)
+   │                           │     travando o retorno em rᵀw ≥ R* - ε.
+   └───────────────────────────┘
+                │
+                ▼
+   [ Alocação Ótima Estável (Menor Risco para o Máximo Retorno) ]
 
 ### 1. Estágio 1: Programação Linear (LP via HiGHS)
 Maximiza-se o retorno esperado financeiro sujeito às restrições regulatórias e de política:
@@ -67,7 +68,6 @@ Onde $\mathbf{\Sigma}$ é a matriz de covariância estimada dos ativos. A utiliz
 
 ## 🏛️ Arquitetura do Repositório
 
-```text
 portfolio-optimizer-engine/
 │
 ├── src/
@@ -83,32 +83,37 @@ portfolio-optimizer-engine/
 ├── tests/
 │   └── test_optimizer.py        # Suíte de testes automatizados (pytest)
 │
-├── data/                        # Dados de entrada e configurações
 ├── requirements.txt             # Dependências versionadas do projeto
 ├── .gitignore                   # Exclusões de ambiente e arquivos locais
 └── README.md                    # Documentação técnica do sistema
 ⚡ Guia de Execução Rápida
+
 1. Clonar o projeto e instalar dependências
+
 Bash
 git clone [https://github.com/eniocancian/portfolio-optimizer-engine.git](https://github.com/eniocancian/portfolio-optimizer-engine.git)
 cd portfolio-optimizer-engine
 pip install -r requirements.txt
+
 2. Executar os testes automatizados
 PowerShell
 $env:PYTHONPATH="."
 python -m pytest tests/ -v
+
 3. Iniciar o Backend (FastAPI)
+
 Bash
 uvicorn src.main:app --reload --port 8000
 Swagger UI / Documentação Interativa: http://127.0.0.1:8000/docs
-
 Health Check: http://127.0.0.1:8000/health
 
 4. Iniciar o Frontend (Streamlit)
+
 Em outro terminal:
 
 Bash
 streamlit run frontend/app.py
+
 Acesse o dashboard no navegador em: http://localhost:8501
 
 📡 Contratos da API (FastAPI)
