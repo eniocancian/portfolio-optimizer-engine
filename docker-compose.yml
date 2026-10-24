@@ -1,0 +1,32 @@
+﻿version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: portfolio_optimizer_api
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    networks:
+      - portfolio_net
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: portfolio_optimizer_dashboard
+    ports:
+      - "8501:8501"
+    environment:
+      - API_URL=http://backend:8000
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - portfolio_net
+
+networks:
+  portfolio_net:
+    driver: bridge
