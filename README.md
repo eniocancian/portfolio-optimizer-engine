@@ -36,16 +36,17 @@ Para garantir otimização global e estabilidade, este motor implementa uma este
                 │
                 ▼
    [ Alocação Ótima Estável (Menor Risco para o Máximo Retorno) ]
+```
 
 ### 1. Estágio 1: Programação Linear (LP via HiGHS)
-Maximiza-se o retorno esperado financeiro sujeito às restrições regulatórias e de política:
+Maximiza-se o retorno financeiro esperado sujeito às restrições regulatórias e de política:
 
 $$\max_{\mathbf{x}} \quad \mathbf{r}^T \mathbf{x}$$
 
 Sujeito a:
 * $\sum_{i=1}^n x_i = C$ (Restrição de Orçamento Total)
 * $\sum_{i \in \text{RF}} x_i \ge \alpha \cdot C$ (Piso regulatório/política de Renda Fixa)
-* $L_i \le x_i \le U_i, \quad \forall i \in \{1, \dots, n\}$ (Limites inferiores e superiores por ativo)
+* $L_i \le x_i \le U_i, \quad \forall i \in \{1, \dots, n\}$ (Limites individuais por ativo)
 
 O dual do problema devolve os **preços-sombra** (custos de oportunidade):
 * **Capital**: Ganho marginal por unidade monetária adicional de patrimônio líquido.
@@ -68,6 +69,7 @@ Onde $\mathbf{\Sigma}$ é a matriz de covariância estimada dos ativos. A utiliz
 
 ## 🏛️ Arquitetura do Repositório
 
+```text
 portfolio-optimizer-engine/
 │
 ├── src/
@@ -86,43 +88,63 @@ portfolio-optimizer-engine/
 ├── requirements.txt             # Dependências versionadas do projeto
 ├── .gitignore                   # Exclusões de ambiente e arquivos locais
 └── README.md                    # Documentação técnica do sistema
-⚡ Guia de Execução Rápida
+```
 
-1. Clonar o projeto e instalar dependências
+---
 
-Bash
+## ⚡ Guia de Execução Rápida
+
+### 1. Clonar o projeto e instalar dependências
+```bash
 git clone [https://github.com/eniocancian/portfolio-optimizer-engine.git](https://github.com/eniocancian/portfolio-optimizer-engine.git)
 cd portfolio-optimizer-engine
 pip install -r requirements.txt
+```
 
-2. Executar os testes automatizados
-PowerShell
+### 2. Executar os testes automatizados
+```powershell
 $env:PYTHONPATH="."
 python -m pytest tests/ -v
+```
 
-3. Iniciar o Backend (FastAPI)
-
-Bash
+### 3. Iniciar o Backend (FastAPI)
+```bash
 uvicorn src.main:app --reload --port 8000
-Swagger UI / Documentação Interativa: http://127.0.0.1:8000/docs
-Health Check: http://127.0.0.1:8000/health
+```
+* **Swagger UI / Documentação Interativa:** [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+* **Health Check:** [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health)
 
-4. Iniciar o Frontend (Streamlit)
-
+### 4. Iniciar o Frontend (Streamlit)
 Em outro terminal:
-
-Bash
+```bash
 streamlit run frontend/app.py
+```
+* Acesse o dashboard no navegador em: [http://localhost:8501](http://localhost:8501)
 
-Acesse o dashboard no navegador em: http://localhost:8501
+---
 
-📡 Contratos da API (FastAPI)
-POST /api/v1/optimize
+## 📋 Universo de Ativos e Limites Padrão
+
+| Ativo | Classe | Retorno Esperado (% a.a.) | Volatilidade Anual (% a.a.) | Teto Individual (%) | Piso Individual (%) |
+| :--- | :--- | :---: | :---: | :---: | :---: |
+| **Tesouro Selic** | Renda Fixa | 13,75% | 0,50% | 30,0% | 0,0% |
+| **Tesouro IPCA+** | Renda Fixa | 13,75% | 4,50% | 30,0% | 0,0% |
+| **CDB Pós-fixado** | Renda Fixa | 13,75% | 0,80% | 30,0% | 0,0% |
+| **Fundo DI** | Renda Fixa | 13,75% | 0,60% | 30,0% | 0,0% |
+| **Fundo Multimercado** | Multimercado | 14,00% | 6,00% | 15,0% | 0,0% |
+
+* **Capital Total Padrão:** R$ 100.000,00
+* **Piso de Alocação em Renda Fixa ($\alpha$):** 60%
+* **Taxa Livre de Risco:** 13,75% a.a.
+
+---
+
+## 📡 Contratos da API (FastAPI)
+
+### `POST /api/v1/optimize`
 Processa a otimização em dois estágios e retorna a alocação de equilíbrio, métricas de risco e preços-sombra.
 
-Exemplo de Payload:
-
-JSON
+```json
 {
   "ativos": [
     {"Ativo": "Tesouro Selic", "Classe": "Renda Fixa", "Retorno_Esperado": 0.1375, "Volatilidade_Anual": 0.005, "Teto_Individual": 0.30, "Piso_Individual": 0.0},
@@ -136,24 +158,26 @@ JSON
   "taxa_livre_risco": 0.1375,
   "minimizar_risco_no_empate": true
 }
+```
 
-OST /api/v1/sensitivity
-Varia dinamicamente o teto de um ativo para traçar o trade-off retorno vs. risco e identificar quebras de restrição.
+### `POST /api/v1/sensitivity`
+Varia dinamicamente o teto de um ativo para traçar o *trade-off* retorno vs. risco e identificar quebras de restrição.
 
-POST /api/v1/plot
-Retorna os quatro gráficos do painel de diagnóstico codificados em Base64 para consumo direto por interfaces clientes.
+### `POST /api/v1/plot`
+Retorna os quatro gráficos do painel de diagnóstico codificados em Base64.
 
-🛠️ Stack Tecnológica
-Modelagem & Otimização: SciPy (scipy.optimize.linprog com HiGHS, scipy.optimize.minimize com trust-constr), NumPy, Pandas.
+---
 
-Backend: FastAPI, Uvicorn, Pydantic v2.
+## 🛠️ Stack Tecnológica
 
-Frontend: Streamlit, Matplotlib.
+* **Modelagem & Otimização:** SciPy (`scipy.optimize.linprog` com HiGHS, `scipy.optimize.minimize` com `trust-constr`), NumPy, Pandas.
+* **Backend:** FastAPI, Uvicorn, Pydantic v2.
+* **Frontend:** Streamlit, Matplotlib.
+* **Qualidade de Software:** Pytest, PEP-8 compliance.
 
-Qualidade de Software: Pytest, PEP-8 compliance.
+---
 
-👤 Autor
-Desenvolvido por Ênio Fernando Cancian Júnior.
+## 👤 Autor
 
-GitHub: @eniocancian
-
+Desenvolvido por **Ênio Fernando Cancian Júnior**.  
+* GitHub: [@eniocancian](https://github.com/eniocancian)
