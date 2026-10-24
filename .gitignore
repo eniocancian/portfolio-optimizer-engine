@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Ambientes virtuais
+.venv/
+venv/
+ENV/
+env/
+
+# IDEs e Editores
+.vscode/
+.idea/
+.spyderproject
+.spyproject
+
+# Saídas e relatórios locais
+*.png
+*.jpg
+*.csv
+.pytest_cache/
